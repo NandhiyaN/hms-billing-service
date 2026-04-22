@@ -314,11 +314,12 @@ Used for request tracing across services
  ### Step 4: Install dependencies
     ```bash
     pip install -r requirements.txt
+    pip install uvicorn
     ```
 
  ### Step 5: Run the service
     ```bash
-    uvicorn billing_service:app --host 0.0.0.0 --port 9005 --reload
+    python -m uvicorn billing_service:app --reload --port 9005
     ```
  ### Step 6: Open Swagger UI
     http://localhost:9005/docs
@@ -399,16 +400,4 @@ Audit fields
 
 ## 24. Author / Contribution
 Scope: Billing APIs, validation, RBAC, structured logging, tests, Docker setup, and OpenAPI documentation.
-
-
-
-
-
-
-
-
-
-
-
-
 
