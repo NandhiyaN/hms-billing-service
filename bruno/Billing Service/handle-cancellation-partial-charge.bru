@@ -1,0 +1,20 @@
+meta {
+  name: Handle Cancellation Partial Charge
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:9005/v1/bills/handle-cancellation/1
+  body: json
+}
+
+headers {
+  Authorization: Bearer billing_test
+}
+
+body:json {
+  {
+    "penalty": 0.5
+  }
+}

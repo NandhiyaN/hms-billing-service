@@ -1,0 +1,14 @@
+meta {
+  name: List Bills
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:9005/v1/bills?skip=0&limit=10
+  body: none
+}
+
+headers {
+  Authorization: Bearer billing_test
+}

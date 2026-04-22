@@ -1,0 +1,14 @@
+meta {
+  name: Get Bill By ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: http://localhost:9005/v1/bills/1
+  body: none
+}
+
+headers {
+  Authorization: Bearer billing_test
+}
