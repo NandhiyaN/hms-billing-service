@@ -9,6 +9,7 @@ from common_utils import (
     require_role,
     setup_json_logger,
 )
+from typing import Optional
 import os
 import time
 import httpx
@@ -96,9 +97,9 @@ async def fetch_appointment(appointment_id: int):
 def get_bills(
     skip: int = 0,
     limit: int = 10,
-    patient_id: int | None = None,
-    appointment_id: int | None = None,
-    status: str | None = None,
+    patient_id: Optional[int] = None,
+    appointment_id: Optional[int] = None,
+    status: Optional[str] = None,
     db: Session = Depends(get_db),
     role: str = Depends(require_role(["billing", "admin", "reception"]))
 ):
