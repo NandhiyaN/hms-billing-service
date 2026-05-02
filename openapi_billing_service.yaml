@@ -2,23 +2,19 @@ openapi: 3.0.3
 info:
   title: Billing Service API
   version: 1.0.0
-  description: >
-    Billing Service for Hospital Management System.
-    Supports bill listing, bill retrieval, bill generation from completed appointments,
-    cancellation handling, and billing adjustments.
+  description: API for managing billing and payments
 
 servers:
-  - url: http://localhost:9005
+  - url: http://localhost:9006
 
 paths:
+
   /health:
     get:
-      summary: Health check
-      tags:
-        - Health
+      summary: Health Check
       responses:
-        '200':
-          description: Service health status
+        "200":
+          description: Service is healthy
           content:
             application/json:
               schema:
@@ -26,249 +22,192 @@ paths:
                 properties:
                   status:
                     type: string
-                    example: ok
                   service:
                     type: string
-                    example: billing
 
   /v1/bills:
     get:
-      summary: List bills
-      tags:
-        - Bills
+      summary: Get bills
       parameters:
-        - in: query
-          name: skip
+        - name: skip
+          in: query
           schema:
             type: integer
             default: 0
-        - in: query
-          name: limit
+        - name: limit
+          in: query
           schema:
             type: integer
             default: 10
-        - in: query
-          name: patient_id
+        - name: patient_id
+          in: query
           schema:
             type: integer
-        - in: query
-          name: appointment_id
+        - name: appointment_id
+          in: query
           schema:
             type: integer
-        - in: query
-          name: status
+        - name: status
+          in: query
           schema:
             type: string
-            example: OPEN
-      security:
-        - bearerAuth: []
+            enum: [OPEN, PAID, VOID, REFUND]
       responses:
-        '200':
+        "200":
           description: List of bills
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/BillResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
+                  $ref: "#/components/schemas/BillResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 
   /v1/bills/{bill_id}:
     get:
       summary: Get bill by ID
-      tags:
-        - Bills
       parameters:
-        - in: path
-          name: bill_id
+        - name: bill_id
+          in: path
           required: true
           schema:
             type: integer
-      security:
-        - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Bill details
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BillResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+                $ref: "#/components/schemas/BillResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /v1/bills/generate-from-appointment/{appointment_id}:
     post:
-      summary: Generate bill for completed appointment
-      tags:
-        - Bills
+      summary: Generate bill from appointment
       parameters:
-        - in: path
-          name: appointment_id
+        - name: appointment_id
+          in: path
           required: true
           schema:
             type: integer
-      security:
-        - bearerAuth: []
       responses:
-        '200':
-          description: Bill generated successfully
+        "200":
+          description: Bill generated
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BillResponse'
-        '400':
-          description: Appointment is not completed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          description: Appointment not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '409':
-          description: Bill already exists for appointment
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/BillResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   /v1/bills/handle-cancellation/{appointment_id}:
     post:
-      summary: Handle bill update for cancelled appointment
-      tags:
-        - Bills
+      summary: Handle cancellation billing logic
       parameters:
-        - in: path
-          name: appointment_id
+        - name: appointment_id
+          in: path
           required: true
           schema:
             type: integer
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CancelRequest'
+              $ref: "#/components/schemas/CancelRequest"
       responses:
-        '200':
-          description: Bill updated after cancellation
+        "200":
+          description: Cancellation handled
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BillResponse'
-        '400':
-          description: Invalid cancellation request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+                $ref: "#/components/schemas/BillResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /v1/bills/{bill_id}/adjust:
     post:
-      summary: Adjust an existing bill
-      tags:
-        - Bills
+      summary: Adjust bill
       parameters:
-        - in: path
-          name: bill_id
+        - name: bill_id
+          in: path
           required: true
           schema:
             type: integer
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdjustmentRequest'
+              $ref: "#/components/schemas/AdjustmentRequest"
       responses:
-        '200':
-          description: Bill adjusted successfully
+        "200":
+          description: Bill adjusted
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: string
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BillResponse'
-        '400':
-          description: Invalid adjustment or paid bill cannot be edited
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '403':
-          $ref: '#/components/responses/ForbiddenError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
+                $ref: "#/components/schemas/BillResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: MockToken
 
   schemas:
+
     BillResponse:
       type: object
       properties:
         bill_id:
           type: integer
-          example: 1
         patient_id:
           type: integer
-          example: 101
         appointment_id:
           type: integer
-          example: 5001
         base_amount:
           type: number
           format: float
-          example: 120.0
         tax_amount:
           type: number
           format: float
-          example: 6.0
         total_amount:
           type: number
           format: float
-          example: 126.0
         status:
           type: string
-          example: OPEN
-          enum:
-            - OPEN
-            - PAID
-            - VOID
-            - REFUND
-            - PARTIAL_REFUND
+          enum: [OPEN, PAID, VOID, REFUND]
         created_at:
           type: string
           format: date-time
-          example: "2026-04-21T10:30:00Z"
 
     CancelRequest:
       type: object
@@ -277,9 +216,9 @@ components:
       properties:
         penalty:
           type: number
-          format: float
-          description: Cancellation penalty ratio between 0 and 1
-          example: 0.5
+          minimum: 0
+          maximum: 1
+          description: Penalty percentage (0 to 1)
 
     AdjustmentRequest:
       type: object
@@ -289,43 +228,56 @@ components:
       properties:
         adjustment_amount:
           type: number
-          format: float
-          example: 25.0
         reason:
           type: string
-          example: Additional medication charge
 
     ErrorResponse:
       type: object
       properties:
         code:
           type: string
-          example: "404"
         message:
           type: string
-          example: Bill not found
         correlationId:
           type: string
-          example: 8d6b5d4a-b0c3-4f22-b0fd-2b9c9f947f56
+        details:
+          type: array
+          items:
+            type: object
 
   responses:
-    UnauthorizedError:
-      description: Unauthorized
+
+    BadRequest:
+      description: Bad request
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
 
-    ForbiddenError:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-    NotFoundError:
+    NotFound:
       description: Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Conflict:
+      description: Conflict error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
